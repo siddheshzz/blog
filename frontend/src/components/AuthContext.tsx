@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   token: string | null;
 }
@@ -66,6 +67,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    try {
+      const response = await apiService.register({ name, email, password });
+
+      localStorage.setItem('token', response.token);
+      setToken(response.token);
+      setIsAuthenticated(true);
+    } catch (error) {
+      throw error;
+    }
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
@@ -87,6 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     user,
     login,
+    register,
     logout,
     token
   };

@@ -6,6 +6,12 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface AuthResponse {
   token: string;
   expiresIn: number;
@@ -96,7 +102,9 @@ class ApiService {
     this.api.interceptors.response.use(
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
-        if (error.response?.status === 401) {
+        const url = (error.config?.url ?? '');
+        const isAuthCall = url.includes('/auth/login') || url.includes('/auth/register');
+        if (error.response?.status === 401 && !isAuthCall) {
           localStorage.removeItem('token');
           window.location.href = '/login';
         }
@@ -125,6 +133,12 @@ class ApiService {
   // Auth endpoints
   public async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/login', credentials);
+    localStorage.setItem('token', response.data.token);
+    return response.data;
+  }
+
+  public async register(data: RegisterRequest): Promise<AuthResponse> {
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', data);
     localStorage.setItem('token', response.data.token);
     return response.data;
   }
