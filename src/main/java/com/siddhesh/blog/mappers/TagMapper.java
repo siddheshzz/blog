@@ -1,7 +1,7 @@
 package com.siddhesh.blog.mappers;
 
 
-import com.siddhesh.blog.domain.PostStatus;
+import com.siddhesh.blog.domain.entities.PostStatus;
 import com.siddhesh.blog.domain.dtos.TagDto;
 import com.siddhesh.blog.domain.entities.Post;
 import com.siddhesh.blog.domain.entities.Tag;

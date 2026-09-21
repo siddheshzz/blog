@@ -1,7 +1,7 @@
 package com.siddhesh.blog.domain.dtos;
 
 
-import com.siddhesh.blog.domain.PostStatus;
+import com.siddhesh.blog.domain.entities.PostStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

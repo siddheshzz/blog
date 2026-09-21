@@ -2,9 +2,9 @@ services:
   db:
     image: postgres:16
     ports:
-      # host:container — 5432 matches spring.datasource.url in application.yaml
-      # so you do NOT need to change application.yml anymore
-      - "5432:5432"
+      # host:container — host MUST be 5433: your Mac already runs postgres on 5432.
+      # Containers talk via 'db:5432' (right side) regardless of this mapping.
+      - "5433:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -17,6 +17,33 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Spring maps SPRING_DATASOURCE_URL -> spring.datasource.url (overrides application.yaml).
+      # Inside docker, backend reaches postgres via hostname 'db', NOT localhost.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: a
+      # Dev-only secret. Override in production: JWT_SECRET=<strong random>
+      JWT_SECRET: "dev-only-secret-that-is-at-least-256-bits-long-for-hs256-ok"
+
+  frontend:
+    build: ./frontend
+    ports:
+      # host 3000 (NOT 5173): avoids clashing with local `npm run dev`.
+      # Run EITHER docker frontend OR vite dev, not both on the same port.
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
 
   adminer:
     image: adminer:latest

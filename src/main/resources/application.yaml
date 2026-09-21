@@ -3,7 +3,11 @@ spring:
     name: blog
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    # Default for LOCAL runs (./mvnw spring-boot:run on your laptop).
+    # Host port is 5433 because your Mac already runs postgres on 5432.
+    # When backend runs in Docker, compose overrides this via
+    # SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres (see docker-compose.yml).
+    url: jdbc:postgresql://localhost:5433/postgres
     username: postgres
     password: a
 #    driver-class-name: org.postgresql.Driver
