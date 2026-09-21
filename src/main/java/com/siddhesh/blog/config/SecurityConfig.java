@@ -1,6 +1,5 @@
 package com.siddhesh.blog.config;
 
-import com.siddhesh.blog.domain.entities.User;
 import com.siddhesh.blog.repositories.UserRepository;
 import com.siddhesh.blog.security.BlogUserDetailsService;
 import com.siddhesh.blog.security.JwtAuthenticationFilter;
@@ -29,20 +28,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(   UserRepository userRepository) {
-        BlogUserDetailsService blogUserDetailsService = new BlogUserDetailsService(userRepository);
-
-        String email = "user@test.com";
-        userRepository.findByEmail(email).orElseGet(() -> {
-            User newUser = User.builder()
-                    .name("Test User")
-                    .email(email)
-                    .password(passwordEncoder().encode("password"))
-                    .build();
-            return userRepository.save(newUser);
-        });
-
-        return blogUserDetailsService;
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new BlogUserDetailsService(userRepository);
     }
 
     @Bean
@@ -60,6 +47,10 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                        // /drafts must come BEFORE the broad /posts/** permitAll,
+                        // otherwise drafts become public (matchers are evaluated in order)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/drafts").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/tags/**").permitAll()

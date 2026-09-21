@@ -1,6 +1,8 @@
 package com.siddhesh.blog.services.impl;
 
 import com.siddhesh.blog.services.AuthenticationService;
+import com.siddhesh.blog.domain.entities.User;
+import com.siddhesh.blog.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
@@ -12,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -25,6 +28,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -35,6 +40,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public UserDetails authenticate(String email, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
 
+        return userDetailsService.loadUserByUsername(email);
+    }
+
+    @Override
+    public UserDetails register(String name, String email, String password) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("User already exists with email: " + email);
+        }
+        User newUser = User.builder()
+                .name(name)
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .build();
+        userRepository.save(newUser);
         return userDetailsService.loadUserByUsername(email);
     }
 

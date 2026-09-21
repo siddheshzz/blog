@@ -1,14 +1,31 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:16
     ports:
-      - "5433:5432"
-    restart: always
+      # host:container — 5432 matches spring.datasource.url in application.yaml
+      # so you do NOT need to change application.yml anymore
+      - "5432:5432"
+    restart: unless-stopped
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: a
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   adminer:
     image: adminer:latest
-    restart: always
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - 8888:8080
+
+volumes:
+  pgdata:
